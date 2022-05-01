@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Webapp1.Data;
+using WebApp1.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +11,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddRazorPages();
 
+// Add Claims
+builder.Services.AddAuthorization(options => 
+{
+    // options.AddPolicy("Administrator", policy => policy.RequireClaim("EmployeeRole","Admin"));
+    // options.AddPolicy("Managers", policy => policy.RequireClaim("EmployeeRole", "AccountantManager","BusinessManager"));
+
+    // OR an alternative using roles
+
+    options.AddPolicy("Administrator", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("Managers", policy => policy.RequireRole("AccountantManager","BusinessManager"));
+});
+
+// Configure Identity
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // password settings
@@ -30,7 +45,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Lockout.AllowedForNewUsers = true;
 
     // user settings
-    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@";
     options.User.RequireUniqueEmail = false;
 });
 
@@ -63,6 +78,13 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+using(var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    SeedData.Seed(serviceProvider);
+}
+
 
 app.MapRazorPages();
 

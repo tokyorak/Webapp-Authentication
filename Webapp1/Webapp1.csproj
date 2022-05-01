@@ -5,11 +5,18 @@
     <!-- <Nullable>enable</Nullable> -->
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Webapp1-B7BD9855-CB08-4377-9986-3079B73EEBB7</UserSecretsId>
+    <ResolvePublishStaticWebAssetsDependsOn>RemoveIdentityAssets</ResolvePublishStaticWebAssetsDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
     <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
+
+  <Target Name = "RemoveIdentityAssets">
+    <ItemGroup>
+      <StaticWebAsset Remove="@(StaticWebAsset)" Condition="%(SourceId) == 'Microsoft.AspNetCore.Identity.UI'"/>
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.4" />
